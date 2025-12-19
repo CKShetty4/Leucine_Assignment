@@ -7,6 +7,50 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.btn {
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.fade-item-enter {
+  opacity: 0.01;
+}
+
+.fade-item-enter-active {
+  opacity: 1;
+  transition: opacity 140ms ease-in;
+}
+
+.fade-item-exit {
+  opacity: 1;
+}
+
+.fade-item-exit-active {
+  opacity: 0.01;
+  transition: opacity 140ms ease-out;
+}
+
+@media (max-width: 768px) {
+  .actions-col {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    box-shadow: -2px 0 6px rgba(0, 0, 0, 0.08);
+    z-index: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+
+  .fade-item-enter-active,
+  .fade-item-exit-active {
+    transition: none;
+  }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
@@ -24,6 +25,8 @@ const STATUS_OPTIONS: readonly EquipmentStatus[] = [
     'Inactive',
     'Under Maintenance',
 ];
+
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 const createEmptyData = (): EquipmentFormData => ({
     name: '',
@@ -63,8 +66,35 @@ function validate(data: EquipmentFormData): Partial<Record<FieldName, string>> {
         errors.status = 'Status is required.';
     }
 
-    if (data.lastCleanedDate.trim().length === 0) {
+    const trimmedDate = data.lastCleanedDate.trim();
+    if (trimmedDate.length === 0) {
         errors.lastCleanedDate = 'Last cleaned date is required.';
+    } else if (!ISO_DATE_REGEX.test(trimmedDate)) {
+        errors.lastCleanedDate = 'Last cleaned date must be in YYYY-MM-DD format.';
+    } else {
+        const [yearString, monthString, dayString] = trimmedDate.split('-');
+        const year = Number(yearString);
+        const month = Number(monthString);
+        const day = Number(dayString);
+
+        const utcDate = new Date(Date.UTC(year, month - 1, day));
+        const isValidDate =
+            utcDate.getUTCFullYear() === year &&
+            utcDate.getUTCMonth() === month - 1 &&
+            utcDate.getUTCDate() === day;
+
+        if (!isValidDate) {
+            errors.lastCleanedDate = 'Last cleaned date must be a valid date.';
+        } else {
+            const now = new Date();
+            const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+                now.getDate()
+            ).padStart(2, '0')}`;
+
+            if (trimmedDate > todayIso) {
+                errors.lastCleanedDate = 'Last cleaned date cannot be in the future.';
+            }
+        }
     }
 
     return errors;
@@ -96,7 +126,7 @@ export default function EquipmentForm(props: EquipmentFormProps) {
         return Boolean(submitAttempted || touchedFields[fieldName]);
     }
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setSubmitAttempted(true);
 
